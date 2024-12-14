@@ -55,70 +55,57 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               if (order.isRunning && order.status != OrderStatus.confirmed) {
                 return Container(
                   height: 50.0,
+                  width: double.infinity,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 15.0,
                   ),
                   margin: const EdgeInsets.only(bottom: 15.0),
-                  child: Row(
-                    children: [
-                      order.status == OrderStatus.placed
-                          ? Expanded(
-                              child: SizedBox.expand(
-                                child: OutlinedButton(
-                                  onPressed: () => showDialog(
-                                    context: context,
-                                    builder: (context) => FAlertDialog(
-                                      title:
-                                          'Are you sure you want to cancel this order?',
-                                      onYesPressed: () {
-                                        _cubit.cancelOrder(
-                                          onOrderUpdated: context
-                                              .read<OrdersCubit>()
-                                              .fetchNew,
-                                        );
-                                        Navigator.pop(context);
-                                      },
-                                    ),
+                  child: order.status == OrderStatus.placed
+                      ? OutlinedButton(
+                          onPressed: () => showDialog(
+                            context: context,
+                            builder: (context) => FAlertDialog(
+                              title:
+                                  'Are you sure you want to cancel this order?',
+                              onYesPressed: () {
+                                _cubit.cancelOrder(
+                                  onOrderUpdated:
+                                      context.read<OrdersCubit>().fetchNew,
+                                );
+                                Navigator.pop(context);
+                              },
+                            ),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: Colors.red),
+                          ),
+                          child: Text(
+                            'Cancel Order',
+                            style: FTextStyles.button.copyWith(
+                              color: Colors.red,
+                            ),
+                          ),
+                        )
+                      : order.status == OrderStatus.onTheWay
+                          ? BlocProvider.value(
+                              value: _cubit,
+                              child: Builder(builder: (context) {
+                                return GradientButton(
+                                  onPressed: () => context.pushNamed(
+                                    Routes.orderTracking.name,
+                                    extra: <Coordinate>[
+                                      restaurant.coordinate,
+                                      order.userPosition,
+                                    ],
                                   ),
-                                  style: OutlinedButton.styleFrom(
-                                    side: const BorderSide(color: Colors.red),
+                                  child: const Text(
+                                    'Track Order',
+                                    style: FTextStyles.button,
                                   ),
-                                  child: Text(
-                                    'Cancel Order',
-                                    style: FTextStyles.button.copyWith(
-                                      color: Colors.red,
-                                    ),
-                                  ),
-                                ),
-                              ),
+                                );
+                              }),
                             )
                           : const SizedBox(),
-                      order.status == OrderStatus.onTheWay
-                          ? Expanded(
-                              child: SizedBox.expand(
-                                child: BlocProvider.value(
-                                  value: _cubit,
-                                  child: Builder(builder: (context) {
-                                    return GradientButton(
-                                      onPressed: () => context.pushNamed(
-                                        Routes.orderTracking.name,
-                                        extra: <Coordinate>[
-                                          restaurant.coordinate,
-                                          order.userPosition,
-                                        ],
-                                      ),
-                                      child: const Text(
-                                        'Track Order',
-                                        style: FTextStyles.button,
-                                      ),
-                                    );
-                                  }),
-                                ),
-                              ),
-                            )
-                          : const SizedBox(),
-                    ],
-                  ),
                 );
               }
               return null;

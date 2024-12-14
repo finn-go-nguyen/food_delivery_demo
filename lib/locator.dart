@@ -3,6 +3,7 @@ import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
@@ -36,7 +37,16 @@ import 'modules/tracking/cubit/order_tracking_cubit.dart';
 import 'repositories/domain_manager.dart';
 import 'repositories/payment/payment_repostiory.dart';
 import 'repositories/users/coordinate.dart';
+import 'utils/services/notification_service.dart';
 import 'utils/services/shared_preferences.dart';
+
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await setupFlutterNotifications();
+  showFlutterNotification(message);
+  // If you're going to use other Firebase services in the background, such as Fi
+  print('Handling a background message ${message.messageId}');
+}
 
 Future<void> initializeApp() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
@@ -46,8 +56,10 @@ Future<void> initializeApp() async {
   usePathUrlStrategy();
 
   await Firebase.initializeApp();
+
   await Future.wait(
     [
+      FirebaseMessaging.instance.getInitialMessage(),
       FirebaseAppCheck.instance.activate(
         webRecaptchaSiteKey: 'recaptcha-v3-site-key',
       ),
@@ -62,6 +74,9 @@ Future<void> initializeApp() async {
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
   await FirebaseCrashlytics.instance
       .setCrashlyticsCollectionEnabled(!kDebugMode);
+
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  await setupFlutterNotifications();
 
   // whenever your initialization is completed, remove the splash screen:
   FlutterNativeSplash.remove();
@@ -94,8 +109,7 @@ Future<void> _locator() async {
       userRepository: DomainManager().userRepository,
       cloudStorage: DomainManager().cloudStorage,
       authRepository: DomainManager().authRepository,
-      restaurantRepository: DomainManager().restaurantRepository,
-      placesSearchRepository: DomainManager().placesSearchRepository,
+      notificationRepository: DomainManager().notificationRepository,
     ),
   );
 

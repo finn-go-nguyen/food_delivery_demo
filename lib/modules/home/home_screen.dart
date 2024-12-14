@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:food_delivery/repositories/domain_manager.dart';
 import '../cubits/app/app_cubit.dart';
 import '../order/cubit/orders_cubit.dart';
 
@@ -13,8 +14,22 @@ import 'cubit/home_cubit.dart';
 import 'widgets/home_app_bar.dart';
 import 'widgets/home_body.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    DomainManager().notificationRepository.getToken().then(
+          (value) => DomainManager().notificationRepository.saveToken(
+              DomainManager().authRepository.currentUser!.id, value.data!),
+        );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,10 +71,7 @@ class HomeScreen extends StatelessWidget {
                   ),
                   child: BlocBuilder<OrdersCubit, OrdersState>(
                     buildWhen: (previous, current) =>
-                        previous.runningOrders.length !=
-                            current.runningOrders.length ||
-                        previous.runningOrders.first !=
-                            current.runningOrders.first,
+                        previous.runningOrders != current.runningOrders,
                     builder: (context, state) {
                       if (state.status.isLoading ||
                           state.runningOrders.isEmpty) {
