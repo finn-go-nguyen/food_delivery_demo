@@ -1,14 +1,17 @@
+import 'dart:async';
+
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:food_delivery/repositories/notification/notification_repository.dart';
 import 'package:get_it/get_it.dart';
 
 import '../../../base/cubit.dart';
 import '../../../base/state.dart';
 import '../../../repositories/auth/auth_repository.dart';
 import '../../../repositories/cloud_storage/cloud_storage.dart';
-import '../../../repositories/maps/search/places_search_repository.dart';
 import '../../../repositories/restaurants/restaurant_model.dart';
-import '../../../repositories/restaurants/restaurant_repository.dart';
 import '../../../repositories/users/user_model.dart';
 import '../../../repositories/users/user_repository.dart';
+import '../../../utils/services/notification_service.dart';
 import '../../home/cubit/home_cubit.dart';
 import '../../login/cubit/login_cubit.dart';
 import '../../order/model/order.dart';
@@ -21,16 +24,20 @@ class AppCubit extends FCubit<AppState> {
     required CloudStorage cloudStorage,
     required UserRepository userRepository,
     required AuthRepository authRepository,
-    required RestaurantRepository restaurantRepository,
-    required PlacesSearchRepository placesSearchRepository,
+    required NotificationRepository notificationRepository,
   })  : _cloudStorage = cloudStorage,
         _userRepository = userRepository,
         _authRepository = authRepository,
-        super(const AppState());
+        super(const AppState()) {
+    _notificationSubscription = FirebaseMessaging.onMessage.listen((message) {
+      showFlutterNotification(message);
+    });
+  }
 
   final CloudStorage _cloudStorage;
   final UserRepository _userRepository;
   final AuthRepository _authRepository;
+  late final StreamSubscription _notificationSubscription;
 
   void init(FUser user) async {
     emitValue(state.copyWith(user: user));
@@ -119,5 +126,11 @@ class AppCubit extends FCubit<AppState> {
       ),
     );
     return update;
+  }
+
+  @override
+  Future<void> close() {
+    _notificationSubscription.cancel();
+    return super.close();
   }
 }

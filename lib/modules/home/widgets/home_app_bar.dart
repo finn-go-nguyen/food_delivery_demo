@@ -47,7 +47,7 @@ class _HomeAppBarState extends State<HomeAppBar> {
               ),
             ),
             Flexible(
-              child: FIconButton(
+              child: FIconRounded(
                 onPressed: () async {
                   final resRef = FirebaseFirestore.instance
                       .collection('restaurants')

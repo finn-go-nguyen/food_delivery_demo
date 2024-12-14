@@ -1,3 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:food_delivery/repositories/notification/notification_repository.dart';
+import 'package:food_delivery/repositories/rating/rating_repository.dart';
+import 'package:food_delivery/repositories/rating/star/star_count_repository.dart';
 import 'package:get_it/get_it.dart';
 
 import 'auth/auth_repository.dart';
@@ -39,6 +44,14 @@ class DomainManager {
     cloudStorage = const FirebaseCloudStorage();
     geocodingRepository = GoogleGeocodingRepository(GetIt.I());
     placesSearchRepository = GooglePlacesSearchRepository(GetIt.I());
+    notificationRepository = NotificationRepository(
+      FirebaseMessaging.instance,
+      FirebaseFirestore.instance,
+    );
+    ratingRepository = RatingRepository(
+      FirebaseFirestore.instance,
+    );
+    starCountRepository = StarCountRepository(FirebaseFirestore.instance);
   }
   static final DomainManager _instance = DomainManager._();
 
@@ -58,4 +71,7 @@ class DomainManager {
   late CloudStorage cloudStorage;
   late GeocodingRepository geocodingRepository;
   late PlacesSearchRepository placesSearchRepository;
+  late NotificationRepository notificationRepository;
+  late RatingRepository ratingRepository;
+  late StarCountRepository starCountRepository;
 }

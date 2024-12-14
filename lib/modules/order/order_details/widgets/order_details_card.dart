@@ -1,20 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:food_delivery/config/routes/coordinator.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../constants/constants.dart';
 
 import '../../../../repositories/food/food_model.dart';
 import '../../../../utils/ui/network_image.dart';
+import '../../model/order.dart';
 
 class OrderDetailsCard extends StatelessWidget {
   const OrderDetailsCard({
     super.key,
     required this.quantity,
     required this.food,
-    // required this.status,
+    required this.status,
   });
 
   final int quantity;
   final FFood food;
-  // final OrderStatus status;
+  final OrderStatus status;
 
   @override
   Widget build(BuildContext context) {
@@ -59,6 +62,26 @@ class OrderDetailsCard extends StatelessWidget {
                         color: FColors.green,
                       ),
                     ),
+                    status == OrderStatus.delivered
+                        ? SizedBox(
+                            height: 35.0,
+                            child: OutlinedButton.icon(
+                              onPressed: () => context
+                                  .pushNamed(Routes.review.name, extra: food),
+                              icon: const Icon(
+                                Icons.edit,
+                                size: 20.0,
+                                color: FColors.green,
+                              ),
+                              label: Text(
+                                'Write a review',
+                                style: FTextStyles.button.copyWith(
+                                  color: FColors.green,
+                                ),
+                              ),
+                            ),
+                          )
+                        : const SizedBox()
                   ],
                 ),
               ],

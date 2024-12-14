@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import '../../constants/ui/colors.dart';
 import '../../constants/ui/ui_parameters.dart';
 
-class FIconButton extends StatelessWidget {
-  const FIconButton({
+class FIconRounded extends StatelessWidget {
+  const FIconRounded({
     super.key,
     this.hasNotification = false,
     required this.icon,
@@ -76,8 +76,8 @@ class FIconButton extends StatelessWidget {
   }
 }
 
-class FIconButtonn extends StatelessWidget {
-  const FIconButtonn({
+class FIconButton extends StatelessWidget {
+  const FIconButton({
     super.key,
     required this.icon,
     required this.color,

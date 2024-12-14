@@ -5,7 +5,6 @@ import 'locator.dart';
 
 Future<void> main() async {
   await initializeApp();
-
   runApp(
     const MyApp(),
   );

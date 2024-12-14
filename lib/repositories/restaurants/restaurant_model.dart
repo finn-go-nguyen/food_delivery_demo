@@ -13,6 +13,14 @@ class FRestaurant extends Equatable {
     this.distance,
   });
 
+  static FRestaurant get empty => const FRestaurant(
+      id: 'init',
+      name: '',
+      url: '',
+      coordinate: Coordinate(latitude: 0, longitude: 0));
+
+  bool get isInit => this == empty;
+
   final String id;
   final String name;
   final String url;

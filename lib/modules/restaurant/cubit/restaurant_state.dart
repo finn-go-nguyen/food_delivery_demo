@@ -1,31 +1,11 @@
 part of 'restaurant_cubit.dart';
 
-class RestaurantState extends FState {
-  const RestaurantState({
-    super.status,
-    super.errorMessage,
-    this.restaurant,
-    this.foods = const <FFood>[],
-  });
-
-  final FRestaurant? restaurant;
-  final List<FFood> foods;
-
-  @override
-  List<Object?> get props => [...super.props, restaurant, foods];
-
-  @override
-  RestaurantState copyWith({
-    ScreenStatus? status,
-    String? errorMessage,
-    FRestaurant? restaurant,
-    List<FFood>? foods,
-  }) {
-    return RestaurantState(
-      status: status ?? this.status,
-      errorMessage: errorMessage ?? this.errorMessage,
-      restaurant: restaurant ?? this.restaurant,
-      foods: foods ?? this.foods,
-    );
-  }
+@freezed
+class RestaurantState with _$RestaurantState {
+  const factory RestaurantState({
+    @Default(AsyncState.loading()) AsyncState<FRestaurant> restaurant,
+    @Default(AsyncState.loading()) AsyncState<List<FFood>> foods,
+    @Default(AsyncState.loading()) AsyncState<FStar> star,
+    @Default(AsyncState.loading()) AsyncState<List<FRating>> ratings,
+  }) = _RestaurantState;
 }

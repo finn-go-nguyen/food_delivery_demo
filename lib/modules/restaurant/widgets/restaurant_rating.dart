@@ -8,9 +8,11 @@ class RestaurantRating extends StatelessWidget {
   const RestaurantRating({
     super.key,
     required this.meters,
+    required this.rating,
   });
 
   final int meters;
+  final double rating;
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +21,7 @@ class RestaurantRating extends StatelessWidget {
       Assets.icons.star.path,
     ], texts: [
       StringExtension.toKm(meters),
-      '0 Rating',
+      '${rating.toStringAsFixed(1)} Rating',
     ]);
   }
 }

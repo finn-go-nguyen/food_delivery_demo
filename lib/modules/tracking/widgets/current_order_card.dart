@@ -63,7 +63,7 @@ class CurrentOrderCard extends StatelessWidget {
           ),
           Row(
             children: [
-              FIconButton(
+              FIconRounded(
                 onPressed: () {
                   FCoordinator.pushNamed(
                     Routes.chat.name,
@@ -79,7 +79,7 @@ class CurrentOrderCard extends StatelessWidget {
                 ),
               ),
               gapW4,
-              FIconButton(
+              FIconRounded(
                 onPressed: () => launchUrlString('tel://${shipper.phone!}'),
                 icon: const Icon(
                   Icons.call_outlined,

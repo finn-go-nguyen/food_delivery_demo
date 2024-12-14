@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../widgets/dialogs/dialog.dart';
 import 'package:get_it/get_it.dart';
 
-import '../../config/routes/coordinator.dart';
 import '../../constants/app_constants.dart';
 import '../../constants/ui/colors.dart';
 import '../../constants/ui/sizes.dart';
@@ -11,16 +11,15 @@ import '../../constants/ui/text_style.dart';
 import '../../gen/assets.gen.dart';
 import '../../repositories/food/food_model.dart';
 import '../../utils/helpers/text_helpers.dart';
-import '../../utils/ui/listen_error.dart';
 import '../../utils/ui/network_image.dart';
 import '../../utils/ui/scrollable_screen_with_background.dart';
-import '../../widgets/buttons/gradient_button.dart';
 import '../../widgets/buttons/icon_button.dart';
 import '../../widgets/chips/category_chip.dart';
 import '../../widgets/testimonial_section.dart';
 import '../cart/cubit/cart_cubit.dart';
 import '../cubits/favorite/favorite_cubit.dart';
 import 'cubit/food_cubit.dart';
+import 'widgets/add_to_cart_button.dart';
 import 'widgets/food_rating.dart';
 
 class FoodScreen extends StatefulWidget {
@@ -48,21 +47,25 @@ class _FoodScreenState extends State<FoodScreen> {
   Widget build(BuildContext _) {
     return BlocProvider(
       create: (_) => _foodCubit,
-      child: ListenError<FoodCubit>(
-        child: BlocBuilder<FoodCubit, FoodState>(
-          buildWhen: (previous, current) => previous.food != current.food,
-          builder: (_, state) {
-            return ScrollableScreenWithBackground(
-              backgroundImage: FNetworkImage(state.food!.img),
+      child: BlocBuilder<FoodCubit, FoodState>(
+        buildWhen: (previous, current) => previous.food != current.food,
+        builder: (_, state) {
+          return state.food.when(
+            error: (message, _) => Text(message),
+            loading: (_) => const Center(
+              child: CircularProgressIndicator(),
+            ),
+            empty: (_) => const SizedBox(),
+            data: (food) => ScrollableScreenWithBackground(
+              backgroundImage: FNetworkImage(food.img),
               bottomCenterButton: BlocBuilder<CartCubit, CartState>(
                 buildWhen: (previous, current) => previous.cart != current.cart,
                 builder: (context, cartState) {
                   return AddToCartButton(
                     onPressed: () async {
                       if (cartState.cart.items.isEmpty ||
-                          cartState.cart.restaurantId ==
-                              state.food!.restaurantId) {
-                        context.read<CartCubit>().addToCart(state.food!);
+                          cartState.cart.restaurantId == food.restaurantId) {
+                        context.read<CartCubit>().addToCart(food);
                         return;
                       }
 
@@ -76,14 +79,13 @@ class _FoodScreenState extends State<FoodScreen> {
                               ' will be removed.',
                           onYesPressed: () {
                             context.read<CartCubit>().clear();
-                            context.read<CartCubit>().addToCart(state.food!);
+                            context.read<CartCubit>().addToCart(food);
                             Navigator.pop(context);
                           },
                         ),
                       );
                     },
-                    isAdded: cartState.cart.items.containsKey(state.food!.id),
-                    isLoading: state.status.isLoading,
+                    isAdded: cartState.cart.items.containsKey(food.id),
                   );
                 },
               ),
@@ -98,10 +100,9 @@ class _FoodScreenState extends State<FoodScreen> {
                         Row(
                           children: [
                             CategoryChip(
-                                text: state.food!.category
-                                    .foodCategoryProcessor()),
+                                text: food.category.foodCategoryProcessor()),
                             const Spacer(),
-                            FIconButtonn(
+                            FIconButton(
                               onTap: () {},
                               icon: Image.asset(
                                 Assets.icons.locationPin.path,
@@ -115,7 +116,7 @@ class _FoodScreenState extends State<FoodScreen> {
                                   previous.favoriteList != current.favoriteList,
                               builder: (context, favoriteState) {
                                 if (favoriteState.favoriteList == null) {
-                                  return FIconButtonn(
+                                  return FIconButton(
                                     icon: const Icon(
                                       Icons.favorite_outline,
                                       color: Colors.red,
@@ -123,10 +124,10 @@ class _FoodScreenState extends State<FoodScreen> {
                                     color: Colors.red.withOpacity(.1),
                                   );
                                 }
-                                return FIconButtonn(
+                                return FIconButton(
                                   onTap: () => context
                                       .read<FavoriteCubit>()
-                                      .toggleFavoriteList(state.food!),
+                                      .toggleFavoriteList(food),
                                   icon: Icon(
                                     favoriteState.favoriteList!.foodIds
                                             .contains(widget.food.id)
@@ -142,11 +143,14 @@ class _FoodScreenState extends State<FoodScreen> {
                         ),
                         gapH20,
                         Text(
-                          state.food!.name,
+                          food.name,
                           style: FTextStyles.heading1,
                         ),
                         gapH20,
-                        const FoodRating(),
+                        FoodRating(
+                          rating: state.star.maybeWhen(
+                              data: (star) => star.average, orElse: () => 0.0),
+                        ),
                         gapH20,
                         const Text(
                           foodDescription,
@@ -155,46 +159,68 @@ class _FoodScreenState extends State<FoodScreen> {
                       ],
                     ),
                   ),
-                  const TestimonialSection(),
+                  const Padding(
+                    padding: EdgeInsets.only(left: 15.0),
+                    child: Text(
+                      'Ratings and Reviews',
+                      style: FTextStyles.heading4,
+                    ),
+                  ),
+                  BlocBuilder<FoodCubit, FoodState>(
+                    buildWhen: (previous, current) =>
+                        previous.star != current.star,
+                    builder: (context, state) => state.star.when(
+                      error: (message, _) => Text(message),
+                      loading: (_) => const CircularProgressIndicator(),
+                      empty: (_) => const Text('Empty'),
+                      data: (star) => Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                        child: RatingStatisticalSection(
+                          star: star,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Center(
+                    child: BlocBuilder<FoodCubit, FoodState>(
+                      buildWhen: (previous, current) =>
+                          previous.ratings != current.ratings,
+                      builder: (context, state) {
+                        return state.ratings.when(
+                          loading: (_) =>
+                              const Center(child: CircularProgressIndicator()),
+                          error: (message, _) => Center(
+                            child: Column(
+                              children: [
+                                const Icon(
+                                  Icons.cancel,
+                                  size: 50,
+                                ),
+                                Text(
+                                  message,
+                                  style: const TextStyle(color: Colors.red),
+                                )
+                              ],
+                            ),
+                          ),
+                          empty: (_) => SizedBox.square(
+                            dimension: 200.0,
+                            child: SvgPicture.asset(
+                              Assets.images.illustrations.empty,
+                            ),
+                          ),
+                          data: (ratings) =>
+                              TestimonialSection(ratings: ratings),
+                        );
+                      },
+                    ),
+                  ),
                   Sizes.navBarGapH,
                 ],
               ),
-            );
-          },
-        ),
-      ),
-    );
-  }
-}
-
-class AddToCartButton extends StatelessWidget {
-  const AddToCartButton({
-    super.key,
-    required this.isAdded,
-    this.isLoading = false,
-    this.onPressed,
-  });
-
-  final bool isAdded;
-  final bool isLoading;
-  final VoidCallback? onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(15.0),
-      child: GradientButton(
-        onPressed:
-            isAdded ? () => FCoordinator.goNamed(Routes.cart.name) : onPressed,
-        height: 70.0,
-        width: double.infinity,
-        gradient: FColors.linearGradient,
-        child: isLoading
-            ? const CircularProgressIndicator()
-            : Text(
-                isAdded ? 'Go To Cart' : 'Add To Cart',
-                style: FTextStyles.button.copyWith(fontSize: 18.0),
-              ),
+            ),
+          );
+        },
       ),
     );
   }

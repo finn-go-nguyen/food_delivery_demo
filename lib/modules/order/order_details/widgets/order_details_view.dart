@@ -115,6 +115,7 @@ class OrderDetailsView extends StatelessWidget {
                 OrderDetailsCard(
                   quantity: order.cart.items[foods[index].id]!,
                   food: foods[index],
+                  status: order.status,
                 ),
                 gapH8,
                 const Divider(),

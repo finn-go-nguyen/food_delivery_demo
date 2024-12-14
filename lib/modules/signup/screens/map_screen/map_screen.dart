@@ -94,7 +94,7 @@ class _MapScreenState extends State<MapScreen> {
                   children: [
                     Padding(
                       padding: const EdgeInsets.only(right: 15.0),
-                      child: FIconButton(
+                      child: FIconRounded(
                         onPressed: () {
                           _moveToLocation(widget.lat, widget.lon);
                         },

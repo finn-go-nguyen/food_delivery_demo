@@ -22,6 +22,7 @@ import '../../modules/order/order_details/order_details_screen.dart';
 import '../../modules/order/orders_screen.dart';
 import '../../modules/profile/edit_screen.dart';
 import '../../modules/profile/profile_screen.dart';
+import '../../modules/rating/write_review_screen.dart';
 import '../../modules/restaurant/restaurant_screen.dart';
 import '../../modules/search/search_screen.dart';
 import '../../modules/signup/screens/fill_bio_screen.dart';
@@ -72,6 +73,7 @@ enum Routes {
   orders,
   orderDetails,
   orderTracking,
+  review,
 }
 
 class FCoordinator {
@@ -458,6 +460,15 @@ final appRouter = GoRouter(
           ),
         );
       },
+    ),
+    GoRoute(
+      parentNavigatorKey: FCoordinator.navigatorKey,
+      name: Routes.review.name,
+      path: '/review',
+      pageBuilder: (context, state) => MaterialPage(
+        fullscreenDialog: true,
+        child: WriteReviewScreen(food: state.extra as FFood),
+      ),
     ),
   ],
 );
